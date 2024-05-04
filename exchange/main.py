@@ -1,7 +1,9 @@
 import requests
-from config import URL
+from config import URL, EMAIL_RECEIVER, rules
 import json
 from datetime import datetime
+
+from mail import send_smtp_email
 
 
 def get_rates():
@@ -22,7 +24,28 @@ def date_of_now():
     return str_time
 
 
+def send_email(rates):
+    str_date = date_of_now()
+    new_rates = rates['data']
+    print(new_rates)
+    temp = {}
+    for exc in rules['currencies']:
+        temp[exc] = new_rates[exc]
+        print(temp)
+    rates = temp
+
+    subject = 'rates:' + str_date
+    text = json.dumps(rates)
+
+    send_smtp_email(subject, text)
+
+
 if __name__ == "__main__":
     rsp = get_rates()
     print(rsp)
-    archive(rsp)
+
+    if rules['archive']:
+        archive(rsp)
+
+    if rules['send_email']:
+        send_email(rsp)
