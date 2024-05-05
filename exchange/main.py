@@ -1,9 +1,10 @@
 import requests
-from config import URL, EMAIL_RECEIVER, rules
+from config import URL, rules
 import json
 from datetime import datetime
 
 from mail import send_smtp_email
+from notification import send_sms
 
 
 def get_rates():
@@ -29,7 +30,7 @@ def send_email(rates):
     new_rates = rates['data']
     print(new_rates)
     temp = {}
-    for exc in rules['currencies']:
+    for exc in rules['send_email']['currencies']:
         temp[exc] = new_rates[exc]
         print(temp)
     rates = temp
@@ -40,6 +41,22 @@ def send_email(rates):
     send_smtp_email(subject, text)
 
 
+def check_notify_rules(rates):
+    currencies = rules['send_sms']['currencies']
+    msg = ''
+    for exc in currencies:
+        if rates[exc] <= currencies[exc]['min']:
+            msg += f'{exc} reached min: {rates[exc]} \n'
+        if rates[exc] >= currencies[exc]['max']:
+            msg += f'{exc} reached max: {rates[exc]} \n'
+    return msg
+
+
+def send_notification(msg):
+    print(msg)
+    send_sms(msg)
+
+
 if __name__ == "__main__":
     rsp = get_rates()
     print(rsp)
@@ -47,5 +64,10 @@ if __name__ == "__main__":
     if rules['archive']:
         archive(rsp)
 
-    if rules['send_email']:
+    if rules['send_email']['enable']:
         send_email(rsp)
+
+    if rules['send_sms']['enable']:
+        notification_msg = check_notify_rules(rsp['data'])
+        if notification_msg:
+            send_notification(notification_msg)
