@@ -20,6 +20,10 @@ rules = {
         'enable': True,
         'currencies': {
             'USD': {'min': 1, 'max': 2}
-        }
+        },
+        'servers': {
+            'Kavenegar': False,
+            'ESB': True
+            }
     }
 }

@@ -5,6 +5,7 @@ from datetime import datetime
 
 from mail import send_smtp_email
 from notification import send_sms
+from esb_sms import send_sms_ESB
 
 
 def get_rates():
@@ -54,7 +55,11 @@ def check_notify_rules(rates):
 
 def send_notification(msg):
     print(msg)
-    send_sms(msg)
+    servers = rules['send_sms']['servers']
+    if servers['Kavenegar']:
+        send_sms(msg)
+    if servers['ESB']:
+        send_sms_ESB(msg)
 
 
 if __name__ == "__main__":
