@@ -1,4 +1,6 @@
 import requests
+from khayyam import JalaliDatetime
+
 from config import URL, rules
 import json
 from datetime import datetime
@@ -9,6 +11,10 @@ from esb_sms import send_sms_ESB
 
 
 def get_rates():
+    """
+    get currencies rates from api
+    :return: rates in json
+    """
     response = requests.get(URL)
     if response.status_code == 200:
         return json.loads(response.text)
@@ -16,18 +22,37 @@ def get_rates():
 
 
 def archive(rates):
-    with open(f'archive/{date_of_now()}.json', 'w') as f:
+    """
+    archive rates in archive dir in json file
+    :param rates: rate from api
+    :return: null
+    """
+    en_time, jalali_time = date_of_now()
+    with open(f'archive/{en_time}.json', 'w') as f:
         f.write(json.dumps(rates))
+    print(jalali_time)
 
 
 def date_of_now():
+    """
+    create date of now in str type
+    :return: Jalali time and Miladi time
+    """
     now = datetime.now()
-    str_time = f'{now.year}{now.month}{now.day}{now.hour}{now.minute}{now.second}'
-    return str_time
+    # str_time = f'{now.year}{now.month}{now.day}{now.hour}{now.minute}{now.second}'
+    str_time = now.strftime('%Y-%m-%d %H.%M.%S')
+    jalali_time = JalaliDatetime(now)
+    jalali_time = jalali_time.strftime('%Y-%m-%d %H.%M.%S')
+    return str_time, jalali_time
 
 
 def send_email(rates):
-    str_date = date_of_now()
+    """
+    base on config file, call methods for send email
+    :param rates: rate from api
+    :return: email
+    """
+    str_date, jalali_date = date_of_now()
     new_rates = rates['data']
     print(new_rates)
     temp = {}
@@ -43,6 +68,11 @@ def send_email(rates):
 
 
 def check_notify_rules(rates):
+    """
+    check conditions for send sms
+    :param rates: rates from api
+    :return: message
+    """
     currencies = rules['send_sms']['currencies']
     msg = ''
     for exc in currencies:
@@ -54,6 +84,11 @@ def check_notify_rules(rates):
 
 
 def send_notification(msg):
+    """
+    base on config file, choose server for send sms
+    :param msg: test of message
+    :return: null
+    """
     print(msg)
     servers = rules['send_sms']['servers']
     if servers['Kavenegar']:

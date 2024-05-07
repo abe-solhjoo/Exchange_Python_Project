@@ -17,7 +17,7 @@ rules = {
     },
     'send_sms': {
         'sms_receiver': '',
-        'enable': True,
+        'enable': False,
         'currencies': {
             'USD': {'min': 1, 'max': 2}
         },
